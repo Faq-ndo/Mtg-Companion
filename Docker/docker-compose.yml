@@ -1,0 +1,60 @@
+version: '3'
+services:
+  mtg-Companion-php:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    image: mtg-companion-php-img
+    container_name: mtg-companion-php
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    working_dir: /var/www
+    volumes:
+      - /Users/facundodenardo/Documents/mtg_final_project/mtg_companion-1.0:/var/www
+      - ./php/local.ini:/usr/local/etc/php/conf.d/php.ini
+      - ./logs:/usr/local/var/log/
+
+    networks:
+      - mtg-companion-net
+
+  mtgCompanion-server:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    image: mtg-companion-server-img
+    container_name: mtg-companion-server
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /Users/facundodenardo/Documents/mtg_final_project/mtg_companion-1.0:/var/www
+    networks:
+      - mtg-companion-net
+    depends_on:
+      - mtg-Companion-php
+
+
+  mysql:
+    image: mysql:5.7
+    container_name: mtg-companion-db
+    environment:
+      MYSQL_DATABASE: MtgCompanion
+      MYSQL_USER: mtgUser
+      MYSQL_PASSWORD: usermtg1234
+      MYSQL_ROOT_PASSWORD: usermtg1234
+
+    ports:
+      - "3306:3306"
+
+    restart: always
+
+    volumes:
+      - /Users/facundodenardo/Documents/mtg_final_project/Data:/var/lib/mysql
+
+    networks:
+      - mtg-companion-net
+
+networks:
+  mtg-companion-net:
+    driver: bridge
